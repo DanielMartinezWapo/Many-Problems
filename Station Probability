@@ -1,0 +1,41 @@
+%% Parámetros del problema
+p = 0.25;  % Probabilidad de avanzar
+q = 0.75;  % Probabilidad de retroceder
+N = 11;    % Número de estaciones (0 a 11)
+
+%% Inicialización
+max_iter = 1000;
+tolerancia = 1e-6;
+p_i = zeros(1, N+1);  % Vector de probabilidades
+p_i(1) = 1;          % Condición de frontera p_0 = 1
+p_i(end) = 0;        % Condición de frontera p_11 = 0
+
+%% Método de Gauss-Seidel
+for iter = 1:max_iter
+    p_old = p_i;
+    for i = 2:N
+        p_i(i) = q*p_i(i-1) + p*p_i(i+1);
+    end
+    if max(abs(p_i - p_old)) < tolerancia
+        break;
+    end
+end
+
+
+%% Generación de tabla de resultados
+disp('Resultados:');
+resultados = [(1:N-1)', p_i(2:N)'];
+disp(array2table(resultados, 'VariableNames', {'Estacion', 'Probabilidad'}));
+
+%% Gráfica
+figure;
+plot(0:N, p_i, '-o', 'LineWidth', 2);
+xlabel('Estación (i)');
+ylabel('p_i');
+title('Probabilidad de retorno a estación 0');
+grid on;
+
+
+error_history(iter) = max(abs(p_i(2:N) - p_analitico));
+
+
