@@ -1,0 +1,76 @@
+%% Datos del problema
+A = [0.3 0.2 0.2 0.1 0.1;
+     0.2 0.3 0.1 0.2 0.1;
+     0.2 0.1 0.3 0.2 0.0;
+     0.1 0.2 0.2 0.3 0.2;
+     0.1 0.1 0.2 0.1 0.3]; % Matriz de coeficientes técnicos
+
+d = [100; 120; 80; 90; 110]; % Demanda final
+n = length(d); % Número de sectores
+I = eye(n); % Matriz identidad
+
+tol = 1e-8; max_iter = 1000;
+x = zeros(n,1); error = inf; iter = 0;
+
+while error > tol && iter < max_iter
+    x_old = x;
+    for i = 1:n
+        sigma = A(i,:)*x - A(i,i)*x(i);
+        x(i) = (d(i) + sigma) / (1 - A(i,i));
+    end
+    error = norm(x - x_old, inf);
+    iter = iter + 1;
+end
+
+
+
+omega = 1.2; % Factor óptimo para convergencia rápida
+x_sor = zeros(n,1); error_sor = inf; iter_sor = 0;
+
+while error_sor > tol && iter_sor < max_iter
+    x_old_sor = x_sor;
+    for i = 1:n
+        sigma = A(i,:)*x_sor - A(i,i)*x_sor(i);
+        x_sor(i) = (1-omega)*x_sor(i) + omega*(d(i)+sigma)/(1-A(i,i));
+    end
+    error_sor = norm(x_sor - x_old_sor, inf);
+    iter_sor = iter_sor + 1;
+end
+
+
+% Datos de la matriz del problema
+A = [0.7 -0.2 -0.2 -0.1 -0.1;
+     -0.2 0.7 -0.1 -0.2 -0.1;
+     -0.2 -0.1 0.7 -0.2 0.0;
+     -0.1 -0.2 -0.2 0.7 -0.2;
+     -0.1 -0.1 -0.2 -0.1 -0.3];
+d = [100; 120; 80; 90; 110];
+
+n = size(A,1);
+I = eye(n);
+
+% 1. Calculamos la matriz de iteración de Jacobi (Tj = D^-1*(L+U))
+D = diag(diag(A));    % Parte diagonal
+L = tril(A,-1);       % Parte triangular inferior estricta
+U = triu(A,1);        % Parte triangular superior estricta
+
+Tj = I-inv(D)*(A);       % Matriz de iteración de Jacobi
+
+% 2. Calculamos el radio espectral (ρ) de Tj
+autovalores = eig(Tj);
+rho = max(abs(autovalores));   % Radio espectral
+
+disp(['Radio espectral (ρ) de la matriz de Jacobi: ', num2str(rho)]);
+disp(inv(D))
+% 3. Calculamos el factor de relajamiento óptimo ω
+if rho < 1
+    omega_opt = 2/(1 + sqrt(1 - rho^2));
+    disp(['Factor de relajamiento óptimo (ω_opt): ', num2str(omega_opt)]);
+else
+    disp('El método no converge para ω=1 (Gauss-Seidel)');
+    disp('Se recomienda probar con 0 < ω < 1');
+end
+
+end
+
+
