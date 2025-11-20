@@ -1,0 +1,42 @@
+% Datos experimentales (ejemplo)
+E = [0,100, 200, 300, 400, 500]; % Energía [kJ]
+h = [0,8.0, 15.5, 17.0, 13.0, 5.0]; % Elevación [u]
+
+% Ajuste polinómico (grado n-1)
+n = length(E);
+p = polyfit(E, h, n-1);
+
+% Evaluar en E = 350 kJ
+h_eval = polyval(p, 350);
+fprintf('Elevación a 350 kJ: %.2f unidades\n', h_eval);
+
+
+% Derivada del polinomio
+dp = polyder(p);
+
+% Raíces de la derivada (puntos críticos)
+critical_E = roots(dp);
+critical_E = critical_E(imag(critical_E) == 0); % Filtra reales
+critical_E = critical_E(critical_E >= min(E) & critical_E <= max(E));
+
+% Evaluar la elevación en los puntos críticos
+h_critical = polyval(p, critical_E);
+
+% Máximo valor
+[h_max, idx] = max(h_critical);
+E_max = critical_E(idx);
+
+fprintf('Máxima elevación: %.2f unidades (a %.2f kJ)\n', h_max, E_max);
+
+
+% Raíces donde h = 0
+roots_h = roots(p);
+roots_h = roots_h(imag(roots_h) == 0); % Filtra reales
+roots_h = roots_h(roots_h > max(E));   % Post-colapso
+
+if ~isempty(roots_h)
+    E_zero = min(roots_h);
+    fprintf('Elevación nula a %.2f kJ\n', E_zero);
+else
+    fprintf('No se predice elevación nula en el rango.\n');
+end
